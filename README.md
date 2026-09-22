@@ -6,6 +6,7 @@ A browser-based 3D campus sustainability dashboard powered by a lightweight Node
 
 - HTML5, CSS3, vanilla JavaScript (ES modules)
 - Three.js (loaded via CDN import map)
+- Firebase Authentication (email/password, CDN import map)
 - Node.js built-in `http` + `fetch` backend
 - Google Gemini API via `gemini-3.5-flash-lite` (override with `GEMINI_MODEL` env var)
 - No build step required
@@ -13,37 +14,66 @@ A browser-based 3D campus sustainability dashboard powered by a lightweight Node
 ## Quick Start
 
 ```bash
+npm install
 npm start
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-1. Paste your Gemini API key in the header.
-2. Click **Start** in the Simulation panel.
-3. Click any building to open its dashboard.
-4. Inject problems, pause/stop the simulation, and click **Get AI Recommendation**.
-5. Use **Resolve Active Issues** to resolve problems based on the AI recommendation text.
+1. Configure Firebase in `js/firebase-config.js` (see Firebase Setup below).
+2. Go to `/register.html` and create an account with email and password.
+3. Log in with the same email and password.
+4. Enter the 6-digit OTP sent to your email.
+5. Paste your Gemini API key in the header.
+6. Click **Start** in the Simulation panel, click any building for its dashboard, and use **Get AI Recommendation** after pausing/stopping.
 
 ## File Structure
 
 ```
 ├── index.html
+├── login.html                     # Email/password login
+├── register.html                  # Email/password sign up
+├── otp.html                       # OTP verification
+├── firebase-service-account.json  # Firebase Admin SDK credentials (keep secret)
 ├── css/
 │   └── style.css
 ├── js/
-│   ├── app.js          # Three.js scene, UI wiring, dashboard
-│   ├── simulation.js   # SimulationEngine class
-│   └── api.js          # Frontend API client
-├── server.js           # Static server + Gemini proxy
+│   ├── app.js                     # Three.js scene, UI wiring, dashboard
+│   ├── auth.js                    # Firebase auth helpers
+│   ├── login.js                   # Login page logic
+│   ├── register.js                # Sign-up page logic
+│   ├── otp.js                     # OTP page logic
+│   ├── guard.js                   # Session guard for the dashboard
+│   ├── firebase-config.js         # Public Firebase config (edit this)
+│   ├── simulation.js              # SimulationEngine class
+│   └── api.js                     # Frontend API client
+├── server.js                      # Static server + Gemini proxy + OTP backend
 ├── package.json
 └── README.md
 ```
+
+## Firebase Setup
+
+1. Create a project in the [Firebase Console](https://console.firebase.google.com/).
+2. Enable **Email/Password** authentication.
+3. Copy your web app's public Firebase config (API key, app ID, etc.) into `js/firebase-config.js`.
+4. Download a **service account** JSON from Firebase Console → Project Settings → Service accounts and save it as `firebase-service-account.json` in the project root.
+
+The public Firebase config is safe to include in the frontend. The backend uses the **service account key** with the Firebase Admin SDK to verify ID tokens securely. Do not commit `firebase-service-account.json` to public repositories.
+
+## Authentication Flow
+
+1. **Sign-up page** (`/register.html`) — Creates a Firebase Authentication email/password account.
+2. **Login page** (`/login.html`) — Firebase Authentication verifies email/password.
+3. **OTP generation** — The backend verifies the Firebase ID token with the Firebase Admin SDK, generates a secure 6-digit code, stores a hash with a 5-minute expiry, and emails it via Nodemailer.
+4. **OTP page** (`/otp.html`) — The user enters the 6-digit code. The backend verifies the hash and expiry, then sets an `HttpOnly` session cookie.
+5. **Dashboard** (`/index.html`) — Protected by the session cookie. Unauthenticated requests are redirected to `/login.html`.
 
 ## Features
 
 ### 3D Campus
 - Dark-themed scene with ground plane, grid, shadows, and orbit controls.
-- Five colored, labeled, clickable buildings: Administration, Classrooms, Labs, Cafeteria, Hostels.
+- Five colored, labeled, clickable academic buildings: Administration, Classrooms, Labs, Cafeteria, Hostels.
 - Hover highlights a building and shows a tooltip.
 - Buildings glow red (critical) or yellow (warning) when active problems exist.
 - Reset View button.
@@ -73,13 +103,23 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Environment Variables
 
-| Variable       | Default                 | Description                  |
-|----------------|-------------------------|------------------------------|
-| `PORT`         | `3000`                  | Server port                  |
-| `GEMINI_MODEL` | `gemini-3.5-flash-lite` | Gemini model name            |
+| Variable                  | Default                                   | Description                              |
+|---------------------------|-------------------------------------------|------------------------------------------|
+| `PORT`                    | `3000`                                    | Server port                              |
+| `GEMINI_MODEL`            | `gemini-3.5-flash-lite`                   | Gemini model name                        |
+| `SESSION_SECRET`          | random (sessions reset on restart)        | Secret for signing session cookies       |
+| `SMTP_HOST`               | —                                         | SMTP host for sending OTP emails         |
+| `SMTP_PORT`               | `587`                                     | SMTP port                                |
+| `SMTP_USER`               | —                                         | SMTP username                            |
+| `SMTP_PASS`               | —                                         | SMTP password                            |
+| `SMTP_FROM`               | `SMTP_USER`                               | From address for OTP emails              |
+| `SMTP_SECURE`             | `false`                                   | Use TLS (`true`/`false`)                 |
+| `LOG_OTP`                 | `true`                                    | Print generated OTP in server console    |
+
+If no SMTP variables are set, the server automatically creates a free [Ethereal Email](https://ethereal.email) test account and logs the preview URL in the console. For quick local testing, the generated OTP is also printed in the server console unless `LOG_OTP=false`.
 
 ## Notes
 
-- The Gemini API key is stored only in `sessionStorage`; no `.env` file is required.
+- The Gemini API key is stored only in `sessionStorage`; no `.env` file is required for it.
 - AI recommendations are only available after pausing or stopping the simulation.
 - The dashboard **Get AI Recommendation** button is disabled until a valid-looking key is entered and the simulation is paused/stopped.

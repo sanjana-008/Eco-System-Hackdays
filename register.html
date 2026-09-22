@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up — Sustainability Digital Twin</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js",
+        "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"
+      }
+    }
+  </script>
+</head>
+<body class="auth-page">
+  <div class="auth-background"></div>
+
+  <main class="auth-card">
+    <div class="auth-header">
+      <span class="brand-mark">🎓</span>
+      <h1>Create Account</h1>
+      <p>Register to access the campus digital twin</p>
+    </div>
+
+    <form id="register-form" class="auth-form" autocomplete="off">
+      <div class="input-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="you@university.edu" required autocomplete="email" />
+      </div>
+
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="••••••••" required autocomplete="new-password" />
+      </div>
+
+      <div class="input-group">
+        <label for="confirm-password">Confirm Password</label>
+        <input id="confirm-password" type="password" placeholder="••••••••" required autocomplete="new-password" />
+      </div>
+
+      <div id="register-error" class="auth-error" role="alert"></div>
+      <div id="register-success" class="auth-success" role="status" hidden></div>
+
+      <button id="btn-signup" type="submit" class="primary auth-submit">
+        <span class="btn-text">Sign Up</span>
+        <span class="btn-loader" hidden></span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Already have an account? <a href="login.html">Log in</a>
+    </div>
+  </main>
+
+  <script type="module" src="js/register.js"></script>
+</body>
+</html>

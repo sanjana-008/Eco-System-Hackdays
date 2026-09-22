@@ -1,11 +1,15 @@
 {
   "name": "sustainability-digital-twin",
   "version": "1.0.0",
-  "description": "AI-driven Sustainability Digital Twin front-end with Three.js and Gemini AI backend.",
+  "description": "AI-driven Sustainability Digital Twin front-end with Three.js, Gemini AI, and Firebase email + OTP authentication.",
   "type": "module",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0",
+    "nodemailer": "^6.9.13"
   },
   "engines": {
     "node": ">=18"

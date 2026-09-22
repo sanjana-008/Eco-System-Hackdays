@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — Sustainability Digital Twin</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
+        "firebase/app": "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js",
+        "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js"
+      }
+    }
+  </script>
+</head>
+<body class="auth-page">
+  <div class="auth-background"></div>
+
+  <main class="auth-card">
+    <div class="auth-header">
+      <span class="brand-mark">🏫</span>
+      <h1>Sustainability Digital Twin</h1>
+      <p>Secure access to the campus digital twin</p>
+    </div>
+
+    <form id="login-form" class="auth-form" autocomplete="off">
+      <div class="input-group">
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="you@university.edu" required autocomplete="email" />
+      </div>
+
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="••••••••" required autocomplete="current-password" />
+      </div>
+
+      <div id="login-error" class="auth-error" role="alert"></div>
+      <div id="login-success" class="auth-success" role="status" hidden></div>
+
+      <button id="btn-continue" type="submit" class="primary auth-submit">
+        <span class="btn-text">Continue</span>
+        <span class="btn-loader" hidden></span>
+      </button>
+    </form>
+
+    <div class="auth-footer">
+      Don't have an account? <a href="register.html">Sign up</a>
+    </div>
+  </main>
+
+  <script type="module" src="js/login.js"></script>
+</body>
+</html>
