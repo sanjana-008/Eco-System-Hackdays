@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Firebase / secrets
+firebase-service-account.json
+.env
+.env.*
+*.pem
+*.key
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+
+# Runtime
+.DS_Store
+.cache/
+/tmp
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
