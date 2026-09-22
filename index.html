@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sustainability Digital Twin</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="app-header">
+    <h1>🏫 Sustainability Digital Twin</h1>
+    <div class="api-section">
+      <label for="api-key">Gemini API Key</label>
+      <input id="api-key" type="password" placeholder="Paste your Gemini API key" autocomplete="off" />
+      <span id="key-status" class="status-dot" title="No key"></span>
+    </div>
+  </header>
+
+  <div class="app-body">
+    <aside class="sidebar">
+      <div>
+        <h2>Campus Blocks</h2>
+        <ul id="nav-list" class="nav-list"></ul>
+      </div>
+
+      <div class="legend">
+        <h2>Legend</h2>
+        <div class="legend-row"><span class="legend-dot good"></span> Normal</div>
+        <div class="legend-row"><span class="legend-dot warn"></span> Warning</div>
+        <div class="legend-row"><span class="legend-dot bad"></span> Critical</div>
+      </div>
+
+      <div class="tip">
+        <h2>Tip</h2>
+        <p>Drag to rotate, scroll to zoom, click a building to view its dashboard, and pause the simulation before requesting AI recommendations.</p>
+      </div>
+    </aside>
+
+    <main class="scene-container">
+      <canvas id="scene-canvas"></canvas>
+      <div class="controls-3d">
+        <button id="reset-view" title="Reset camera">Reset View</button>
+        <button id="toggle-sim-panel" class="primary">Simulation</button>
+      </div>
+    </main>
+  </div>
+
+  <div id="sim-panel" class="sim-panel">
+    <div class="panel-header">
+      <h2>Simulation Control</h2>
+      <button id="close-sim-panel">&times;</button>
+    </div>
+    <div class="panel-body">
+      <div>
+        <div id="clock" class="clock-display">08:00</div>
+        <div id="sim-state" class="state-badge">Stopped</div>
+      </div>
+
+      <div class="playback-row">
+        <button id="btn-start" class="primary">Start</button>
+        <button id="btn-pause">Pause</button>
+        <button id="btn-resume">Resume</button>
+        <button id="btn-stop">Stop</button>
+      </div>
+
+      <div class="speed-control">
+        <label>
+          <span>Simulation Speed</span>
+          <span id="speed-value">1x</span>
+        </label>
+        <input id="speed-slider" type="range" min="1" max="10" step="1" value="1" />
+      </div>
+
+      <form id="inject-form" class="inject-form" autocomplete="off">
+        <h2>Inject Problem</h2>
+        <select id="inject-building" required></select>
+        <select id="inject-type" required></select>
+        <div class="row">
+          <input id="inject-duration" type="number" min="10" max="240" value="30" required />
+          <button type="submit" class="primary">Inject</button>
+        </div>
+      </form>
+
+      <div>
+        <h2>Active Problems</h2>
+        <div id="active-problems" class="problems-list">
+          <div class="problem-item">No active problems</div>
+        </div>
+      </div>
+
+      <div style="flex: 1; display: flex; flex-direction: column;">
+        <h2>Event Log</h2>
+        <div id="event-log" class="event-log"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dashboard-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="dashboard-title">Building Dashboard</h2>
+        <button id="close-dashboard">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="active-problems-dashboard" class="active-problems-dashboard" style="display: none;">
+          <h3>Active Problems</h3>
+          <div id="dashboard-problems"></div>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-card" id="metric-energy">
+            <div class="metric-label">Energy</div>
+            <div class="metric-value"><span id="val-energy">0</span> <span class="metric-unit">kWh</span></div>
+            <div class="metric-deviation" id="dev-energy">Within baseline</div>
+          </div>
+          <div class="metric-card" id="metric-water">
+            <div class="metric-label">Water</div>
+            <div class="metric-value"><span id="val-water">0</span> <span class="metric-unit">L</span></div>
+            <div class="metric-deviation" id="dev-water">Within baseline</div>
+          </div>
+          <div class="metric-card" id="metric-occupancy">
+            <div class="metric-label">Occupancy</div>
+            <div class="metric-value"><span id="val-occupancy">0</span> <span class="metric-unit">%</span></div>
+            <div class="metric-deviation" id="dev-occupancy">Within baseline</div>
+          </div>
+          <div class="metric-card" id="metric-co2">
+            <div class="metric-label">CO₂</div>
+            <div class="metric-value"><span id="val-co2">0</span> <span class="metric-unit">kg</span></div>
+            <div class="metric-deviation" id="dev-co2">Within baseline</div>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <h3>Live Energy Trend</h3>
+          <canvas id="energy-chart"></canvas>
+        </div>
+
+        <div class="insight-area">
+          <h3>AI Insight / Recommendation</h3>
+          <div id="insight-text" class="insight-text placeholder">Request a recommendation after pausing or stopping the simulation.</div>
+          <div class="ai-button-row">
+            <button id="btn-ai-recommend" class="primary" disabled>Get AI Recommendation</button>
+            <span id="ai-status" class="ai-status">Simulation must be paused or stopped and a valid key entered.</span>
+          </div>
+          <div class="resolve-row">
+            <button id="btn-resolve-ai" class="resolve-btn" disabled>Resolve Active Issues</button>
+            <span id="resolve-status" class="ai-status"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tooltip"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

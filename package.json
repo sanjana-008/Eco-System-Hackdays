@@ -1,0 +1,13 @@
+{
+  "name": "sustainability-digital-twin",
+  "version": "1.0.0",
+  "description": "AI-driven Sustainability Digital Twin front-end with Three.js and Gemini AI backend.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
